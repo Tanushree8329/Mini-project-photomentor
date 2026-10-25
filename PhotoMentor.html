@@ -1,0 +1,815 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhotoMentor | Photography Learning Assistant</title>
+
+<style>
+:root {
+  --bg: #10131b;
+  --panel: #191e2a;
+  --panel2: #222938;
+  --text: #f4f5f8;
+  --muted: #aeb6c7;
+  --accent: #a78bfa;
+  --green: #68d9a1;
+  --border: #30394b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  padding: 22px 6%;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.logo { font-size: 24px; font-weight: 800; }
+.logo span { color: var(--accent); }
+header p { color: var(--muted); margin: 5px 0 0; }
+nav {
+  display: flex;
+  gap: 8px;
+  padding: 12px 6%;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+}
+button, select {
+  font: inherit;
+}
+nav button, .btn {
+  background: var(--panel2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+nav button.active, .btn.primary {
+  background: var(--accent);
+  color: #171322;
+  border-color: var(--accent);
+  font-weight: 700;
+}
+button:hover { filter: brightness(1.12); }
+main {
+  max-width: 1200px;
+  margin: auto;
+  padding: 28px 6% 60px;
+}
+.view { display: none; }
+.view.active { display: block; }
+h1 { font-size: clamp(28px, 4vw, 42px); margin: 0 0 12px; }
+h2 { margin-top: 0; }
+p { line-height: 1.65; }
+.muted { color: var(--muted); }
+.hero {
+  background: linear-gradient(130deg, #292044, #192b3b);
+  padding: 32px;
+  border-radius: 20px;
+  margin-bottom: 22px;
+}
+.hero p { max-width: 720px; color: #d8d7e8; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: 16px;
+}
+.card h3 { margin-top: 0; }
+.card p { color: var(--muted); }
+.stat { font-size: 30px; font-weight: 800; color: var(--accent); }
+.progress-track {
+  background: #30394b;
+  height: 10px;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+.progress-fill {
+  background: var(--green);
+  width: 0;
+  height: 100%;
+  transition: width .2s;
+}
+.lesson-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 280px) 1fr;
+  gap: 18px;
+}
+.lesson-list { display: grid; gap: 8px; align-content: start; }
+.lesson-list button {
+  text-align: left;
+  padding: 13px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.lesson-list button.active {
+  border-color: var(--accent);
+  background: #28223c;
+}
+.lesson-content { min-height: 300px; }
+.lesson-content h2 { color: var(--accent); }
+.callout {
+  background: #222938;
+  padding: 14px;
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  margin: 16px 0;
+}
+label { display: block; margin: 15px 0 7px; color: var(--muted); }
+select {
+  width: 100%;
+  max-width: 520px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.result { margin-top: 18px; }
+.exercise {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.exercise input { width: 18px; height: 18px; margin-top: 4px; }
+.exercise.done h3 { text-decoration: line-through; color: var(--green); }
+.option {
+  display: block;
+  margin: 10px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.option:hover { background: var(--panel2); }
+.option input { margin-right: 8px; }
+.feedback { margin-top: 12px; font-weight: 700; }
+footer {
+  text-align: center;
+  padding: 25px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+@media (max-width: 720px) {
+  .lesson-layout { grid-template-columns: 1fr; }
+  .hero { padding: 23px; }
+  main { padding-top: 20px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div>
+    <div class="logo">Photo<span>Mentor</span> 📷</div>
+    <p>Your beginner-friendly photography learning assistant</p>
+  </div>
+  <div class="muted">Learn · Practise · Improve</div>
+</header>
+
+<nav id="navigation">
+  <button class="active" data-view="dashboard">Dashboard</button>
+  <button data-view="lessons">Learn Photography</button>
+  <button data-view="advisor">Camera Advisor</button>
+  <button data-view="practice">Practice Lab</button>
+  <button data-view="quiz">Quiz</button>
+  <button data-view="progress">My Progress</button>
+</nav>
+
+<main>
+  <section id="dashboard" class="view active">
+    <div class="hero">
+      <h1>Learn to see like a photographer.</h1>
+      <p>Understand camera settings, explore composition and lighting, and practise photography through simple guided activities. Start with the basics and build your skills one lesson at a time.</p>
+      <button class="btn primary" onclick="showView('lessons')">Start learning →</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="stat" id="lessonStat">0/12</div>
+        <h3>Photography lessons</h3>
+        <p>Learn camera controls and creative techniques.</p>
+      </div>
+      <div class="card">
+        <div class="stat" id="exerciseStat">0/9</div>
+        <h3>Practice exercises</h3>
+        <p>Complete real-world photography challenges.</p>
+      </div>
+      <div class="card">
+        <div class="stat" id="quizStat">Not attempted</div>
+        <h3>Knowledge quiz</h3>
+        <p>Test what you understand so far.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h2>Your learning progress</h2>
+      <div class="progress-track"><div id="dashboardProgress" class="progress-fill"></div></div>
+      <p id="dashboardProgressText" class="muted">Start a lesson or exercise to begin tracking your progress.</p>
+    </div>
+  </section>
+
+  <section id="lessons" class="view">
+    <h1>Learn Photography</h1>
+    <p class="muted">Choose a topic to read its explanation and practical example.</p>
+    <div class="lesson-layout">
+      <div class="lesson-list" id="lessonList"></div>
+      <article class="card lesson-content" id="lessonContent"></article>
+    </div>
+  </section>
+
+  <section id="advisor" class="view">
+    <h1>Camera Settings Advisor</h1>
+    <p class="muted">Choose a shooting situation to see suggested starting settings.</p>
+    <div class="card">
+      <label for="situation">What are you photographing?</label>
+      <select id="situation">
+        <option value="portrait">Portrait</option>
+        <option value="landscape">Landscape</option>
+        <option value="moving">Moving subject or sports</option>
+        <option value="lowlight">Indoor or low-light scene</option>
+        <option value="night">Night photography</option>
+      </select>
+      <button class="btn primary" style="margin-top:16px" onclick="showAdvice()">Get settings</button>
+      <div id="adviceResult" class="result"></div>
+    </div>
+    <p class="muted">These are starting points. Actual settings depend on your camera, available light, lens, and desired effect.</p>
+  </section>
+
+  <section id="practice" class="view">
+    <h1>Practice Lab</h1>
+    <p class="muted">Try each activity using your phone or camera. Tick it when completed.</p>
+    <div id="exerciseList" class="grid"></div>
+    <div class="card" style="margin-top:18px">
+      <h2>Practice reminder</h2>
+      <p>Take several photographs, compare the results, and note what changed. Learning from your own photographs is more useful than only memorising settings.</p>
+    </div>
+  </section>
+
+  <section id="quiz" class="view">
+    <h1>Photography Quiz</h1>
+    <p class="muted">Answer each question and submit to see your score and explanations.</p>
+    <form id="quizForm" class="card">
+      <div id="quizQuestions"></div>
+      <button class="btn primary" type="submit">Submit answers</button>
+      <button class="btn" type="button" onclick="resetQuiz()">Try again</button>
+      <div id="quizResult" class="result" aria-live="polite"></div>
+    </form>
+  </section>
+
+  <section id="progress" class="view">
+    <h1>My Progress</h1>
+    <div class="card">
+      <h2>Learning summary</h2>
+      <p id="progressSummary">No activity recorded yet.</p>
+      <div class="progress-track"><div id="progressBar" class="progress-fill"></div></div>
+      <p id="progressPercent" class="muted">0% complete</p>
+      <button class="btn" onclick="resetProgress()">Reset all progress</button>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <h2>Photography tip</h2>
+      <p id="dailyTip"></p>
+      <button class="btn" onclick="newTip()">Show another tip</button>
+    </div>
+  </section>
+</main>
+
+<footer>PhotoMentor · Photography learning assistant · Beginner edition</footer>
+
+<script>
+"use strict";
+
+const lessons = [
+{
+ title:"Aperture",
+ explanation:[
+  "Aperture is the opening inside a camera lens that controls how much light reaches the camera sensor.",
+  "It is measured in f-numbers, such as f/1.8, f/4 and f/11. A smaller f-number means a wider opening and generally more light.",
+  "A wide aperture can create a blurred background, which is useful for portraits. A narrow aperture can keep more of a scene in focus, which is useful for landscapes.",
+  "Aperture is one part of the exposure triangle, along with shutter speed and ISO. Changing it can affect both brightness and depth of field."
+ ],
+ example:"Try taking a portrait with the background far behind your subject. Use the widest aperture available on your camera and compare it with a narrower aperture."
+},
+{
+ title:"Shutter Speed",
+ explanation:[
+  "Shutter speed describes how long the camera sensor collects light when a photograph is taken.",
+  "A fast shutter speed, such as 1/1000 second, can freeze fast movement. A slow shutter speed, such as 1/10 second, can show motion blur.",
+  "Slow shutter speeds allow more light to reach the sensor but make camera shake more likely. A tripod can help when the camera must remain still.",
+  "Choose your shutter speed according to how much movement you want to freeze or show. You may need to adjust aperture or ISO to maintain correct exposure."
+ ],
+ example:"Photograph a moving person or vehicle using a faster shutter speed. Then compare the result with a slower speed if your camera allows it."
+},
+{
+ title:"ISO",
+ explanation:[
+  "ISO describes how sensitive the camera's image system is set to be when recording light.",
+  "A lower ISO, such as ISO 100, usually produces a cleaner image when there is enough light. A higher ISO can help in dark situations.",
+  "High ISO settings can introduce visible grain or digital noise, reducing fine detail and image quality.",
+  "Use the lowest ISO that allows you to achieve the shutter speed and aperture you need. Increase ISO when the scene is too dark and other adjustments are not enough."
+ ],
+ example:"Photograph the same stationary subject at a low ISO and a higher ISO. Compare the brightness and visible noise."
+},
+{
+ title:"Exposure Triangle",
+ explanation:[
+  "The exposure triangle describes the relationship between aperture, shutter speed and ISO.",
+  "Aperture affects the amount of light and depth of field. Shutter speed affects the amount of light and the appearance of movement.",
+  "ISO affects image brightness and can influence how much noise appears in a photograph.",
+  "Changing one setting may require adjusting another to keep the image properly exposed. There is no single perfect combination for every scene."
+ ],
+ example:"Photograph the same subject using different combinations of aperture, shutter speed and ISO. Compare brightness, background blur and motion."
+},
+{
+ title:"Composition",
+ explanation:[
+  "Composition is the way objects and visual elements are arranged inside a photograph.",
+  "The rule of thirds divides an image into a three-by-three grid. Placing a subject near a grid line or intersection can create a balanced composition.",
+  "Leading lines, symmetry, framing and negative space can guide the viewer's attention toward the subject.",
+  "Composition is a guide rather than a strict rule. Experiment with different angles and arrangements to find the clearest image."
+ ],
+ example:"Photograph the same subject from the centre and then near a rule-of-thirds intersection. Compare which image feels more balanced."
+},
+{
+ title:"Focus",
+ explanation:[
+  "Focus determines which part of a photograph appears sharp and detailed.",
+  "Autofocus allows the camera to focus automatically, while manual focus lets you adjust focus yourself.",
+  "Single autofocus is useful for still subjects. Continuous autofocus can help track moving subjects on cameras that support it.",
+  "For portraits, focus carefully on the subject's eye when possible. Check the image afterwards to confirm that the important detail is sharp."
+ ],
+ example:"Take a portrait and tap or select the eye area to focus. Check whether the eye is sharper than the background."
+},
+{
+ title:"Lighting",
+ explanation:[
+  "Lighting strongly affects the mood, colour, texture and visibility of a photograph.",
+  "Front lighting illuminates the front of the subject, while side lighting creates shadows that can reveal texture and shape.",
+  "Backlighting comes from behind the subject and can create silhouettes or a bright outline around the subject.",
+  "Soft light, such as light near a window or in open shade, often works well for portraits. Harsh midday sunlight can create strong shadows."
+ ],
+ example:"Photograph an object near a window from the front and from the side. Compare the shadows and texture."
+},
+{
+ title:"White Balance",
+ explanation:[
+  "White balance helps a camera represent white and other colours more accurately under different lighting conditions.",
+  "Different light sources have different colour temperatures. Indoor bulbs may look warm, while shade can make an image appear cool.",
+  "Auto white balance works well in many situations, but daylight, shade, tungsten and custom settings can help when colours look incorrect.",
+  "Consistent white balance is especially useful when taking several photographs in the same lighting conditions."
+ ],
+ example:"Photograph a white object indoors and outdoors. Compare the colour cast and experiment with white-balance settings if available."
+},
+{
+ title:"Focal Length",
+ explanation:[
+  "Focal length describes the optical characteristics of a lens and is usually measured in millimetres.",
+  "A wide-angle lens captures a broad view, making it useful for landscapes and small interiors.",
+  "A longer focal length gives a narrower field of view and can make distant subjects appear larger in the frame.",
+  "The lens, camera position and distance from the subject all influence perspective and framing. Moving closer can change the relative size of objects in the image."
+ ],
+ example:"Use different zoom levels on your phone to photograph the same subject. Compare the field of view and how much of the background appears."
+},
+{
+ title:"Depth of Field",
+ explanation:[
+  "Depth of field is the range of distance in a photograph that appears acceptably sharp.",
+  "A shallow depth of field keeps a limited area sharp and makes other areas look blurred. It is often used for portraits and close-up photographs.",
+  "A deeper depth of field keeps more of the scene in focus and is often useful for landscapes.",
+  "Aperture, focal length, subject distance and camera sensor characteristics can all affect depth of field. Phone portrait modes may simulate background blur using software."
+ ],
+ example:"Photograph a nearby object with the background far away. Try portrait mode or a wide aperture and observe the background blur."
+},
+{
+ title:"HDR Photography",
+ explanation:[
+  "High Dynamic Range photography aims to preserve detail in both bright and dark parts of a scene.",
+  "HDR can help when a bright sky and a dark foreground appear in the same frame.",
+  "Some cameras and phones combine multiple exposures, while others use computational processing to balance shadows and highlights.",
+  "HDR is not always necessary. Excessive processing can make colours and contrast look unnatural, so compare the result with a normal photograph."
+ ],
+ example:"Photograph a scene containing a bright window and a darker room with HDR on and off. Compare the detail in both areas."
+},
+{
+ title:"Portrait Photography",
+ explanation:[
+  "Portrait photography aims to show a person's appearance, expression or personality.",
+  "Good portraits benefit from clear focus on the eyes, suitable lighting and a background that does not distract from the subject.",
+  "Move your subject near soft window light or into open shade to reduce harsh shadows. Give the subject comfortable direction rather than forcing an unnatural pose.",
+  "Try different framing, angles and backgrounds. Always ask permission before photographing someone, especially when sharing the image publicly."
+ ],
+ example:"Take a portrait near a window, focus on the eyes and move distracting objects out of the background. Try both close and wider framing."
+}
+];
+
+const advice = {
+ portrait:{
+  aperture:"Use a wide aperture if available, such as f/1.8–f/2.8",
+  shutter:"Start around 1/125 second or faster for a person holding still",
+  iso:"Keep ISO low when light allows",
+  tip:"Focus on the eyes and use soft light. Phone portrait mode can simulate background blur."
+ },
+ landscape:{
+  aperture:"Try f/8–f/11 on a camera with adjustable aperture",
+  shutter:"Use a tripod if a slow shutter speed is needed",
+  iso:"Use ISO 100–200 when possible",
+  tip:"Keep the horizon level and check focus across the scene."
+ },
+ moving:{
+  aperture:"Use a wide aperture if needed to allow a faster shutter speed",
+  shutter:"Try 1/500 second or faster; use faster speeds for very rapid motion",
+  iso:"Increase ISO if needed to achieve the required shutter speed",
+  tip:"Use continuous autofocus or subject tracking if your camera supports it."
+ },
+ lowlight:{
+  aperture:"Use a wide aperture if available",
+  shutter:"For handheld photos, try around 1/60 second or faster, depending on movement",
+  iso:"Raise ISO if the image is too dark",
+  tip:"Stabilise the camera and use available window or ambient light."
+ },
+ night:{
+  aperture:"Use the widest practical aperture",
+  shutter:"Use a tripod for longer exposures of stationary scenes",
+  iso:"Start low on a tripod; increase ISO when a faster shutter speed is needed",
+  tip:"Keep the camera still and use a timer to reduce shake. Avoid long exposures for moving subjects."
+ }
+};
+
+const exercises = [
+ {title:"Rule of Thirds",description:"Place a subject near a grid line or intersection instead of always centring it."},
+ {title:"Leading Lines",description:"Use a path, road, railing or other line to guide attention toward your subject."},
+ {title:"Light and Shadow",description:"Photograph an object in front light and side light to compare texture and shadows."},
+ {title:"Background Blur",description:"Separate a subject from the background and try portrait mode or a wide aperture."},
+ {title:"Freeze Motion",description:"Photograph a moving subject using a fast shutter speed if your camera permits it."},
+ {title:"Reflection",description:"Find a reflection in water, glass or a mirror and compose a balanced photograph."},
+ {title:"Perspective",description:"Photograph an object from a low angle, a high angle and eye level."},
+ {title:"White Balance",description:"Compare the colour of a scene under different lighting or white-balance settings."},
+ {title:"Portrait Practice",description:"Take a portrait using soft light, clear eye focus and a simple background."}
+];
+
+const questions = [
+ {q:"Which setting controls the lens opening?",options:["ISO","Aperture","Shutter speed","White balance"],answer:1,why:"Aperture controls the size of the opening through which light enters the camera."},
+ {q:"Which shutter speed is generally better for freezing fast movement?",options:["1/10 second","1 second","1/1000 second","10 seconds"],answer:2,why:"A very fast shutter speed reduces the time available for movement to create blur."},
+ {q:"What is a common disadvantage of high ISO?",options:["More image noise","Less storage space always","Automatic zoom","No colour"],answer:0,why:"Higher ISO can make an image brighter but often introduces more visible noise."},
+ {q:"What does the rule of thirds help with?",options:["Charging the camera","Composition","Changing ISO automatically","Cleaning the lens"],answer:1,why:"The rule of thirds helps arrange subjects and other visual elements within the frame."},
+ {q:"Which setting can help create a blurred background?",options:["Wide aperture","High shutter speed alone","White balance","Low battery"],answer:0,why:"A wide aperture can create shallow depth of field, depending on the lens and shooting distance."},
+ {q:"What does white balance adjust?",options:["Image colour temperature","Lens length physically","Memory card size","Shutter durability"],answer:0,why:"White balance helps neutralise unwanted warm or cool colour casts from different light sources."},
+ {q:"Which light often works well for a soft portrait?",options:["Soft window light","Direct harsh sunlight only","Complete darkness","A bright light behind the camera in every case"],answer:0,why:"Soft window light can illuminate a face gently and reduce harsh shadows."},
+ {q:"What is depth of field?",options:["Camera battery life","The range that appears acceptably sharp","The size of the screen","The photograph's file name"],answer:1,why:"Depth of field describes how much of the scene appears acceptably in focus."}
+];
+
+const tips = [
+"Clean your lens before taking photographs. Fingerprints can reduce contrast and clarity.",
+"Look at the background before pressing the shutter. Distracting objects can weaken a good photograph.",
+"Take several photographs from different angles instead of relying on the first frame.",
+"Learn to recognise soft light. It can make portraits easier to expose and more flattering.",
+"Review your photographs and identify one thing you would change in the next attempt.",
+"Keep your subject in focus and check that the important parts of the image are sharp.",
+"Experiment with perspective by changing your height or moving around the subject.",
+"Learn one camera setting at a time, then practise how it affects your photographs."
+];
+
+const STORAGE_KEY = "photomentor_web_progress_v1";
+
+function getSavedState() {
+  const defaults = {completedLessons:[], completedExercises:[], quizScore:null};
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    return {
+      completedLessons: Array.isArray(saved.completedLessons) ? saved.completedLessons : [],
+      completedExercises: Array.isArray(saved.completedExercises) ? saved.completedExercises : [],
+      quizScore: Number.isFinite(saved.quizScore) ? saved.quizScore : null
+    };
+  } catch (error) {
+    return defaults;
+  }
+}
+
+let state = getSavedState();
+let currentLesson = 0;
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.warn("Progress could not be saved in this browser.", error);
+  }
+  updateProgress();
+}
+
+function showView(viewId) {
+  document.querySelectorAll(".view").forEach(function(view) {
+    view.classList.toggle("active", view.id === viewId);
+  });
+
+  document.querySelectorAll("#navigation button").forEach(function(button) {
+    button.classList.toggle("active", button.dataset.view === viewId);
+  });
+
+  if (viewId === "lessons") renderLesson();
+  if (viewId === "practice") renderExercises();
+  if (viewId === "quiz") renderQuiz();
+  if (viewId === "progress") updateProgress();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+document.querySelectorAll("#navigation button").forEach(function(button) {
+  button.addEventListener("click", function() {
+    showView(button.dataset.view);
+  });
+});
+
+function renderLesson() {
+  const list = document.getElementById("lessonList");
+  list.innerHTML = "";
+
+  lessons.forEach(function(lesson, index) {
+    const button = document.createElement("button");
+    button.className =
+      (index === currentLesson ? "active " : "") +
+      (state.completedLessons.includes(index) ? "completed" : "");
+    button.textContent =
+      (state.completedLessons.includes(index) ? "✓ " : "") +
+      (index + 1) + ". " + lesson.title;
+    button.addEventListener("click", function() {
+      currentLesson = index;
+      renderLesson();
+    });
+    list.appendChild(button);
+  });
+
+  const lesson = lessons[currentLesson];
+  const content = document.getElementById("lessonContent");
+
+  content.innerHTML = "";
+  const heading = document.createElement("h2");
+  heading.textContent = lesson.title;
+  content.appendChild(heading);
+
+  lesson.explanation.forEach(function(paragraph) {
+    const p = document.createElement("p");
+    p.textContent = paragraph;
+    content.appendChild(p);
+  });
+
+  const callout = document.createElement("div");
+  callout.className = "callout";
+  const strong = document.createElement("strong");
+  strong.textContent = "Practical example";
+  const example = document.createElement("p");
+  example.textContent = lesson.example;
+  callout.appendChild(strong);
+  callout.appendChild(example);
+  content.appendChild(callout);
+
+  const button = document.createElement("button");
+  button.className = "btn primary";
+  const completed = state.completedLessons.includes(currentLesson);
+  button.textContent = completed ? "Mark as not completed" : "Mark lesson completed";
+  button.addEventListener("click", function() {
+    if (state.completedLessons.includes(currentLesson)) {
+      state.completedLessons = state.completedLessons.filter(function(n) {
+        return n !== currentLesson;
+      });
+    } else {
+      state.completedLessons.push(currentLesson);
+    }
+    saveState();
+    renderLesson();
+  });
+  content.appendChild(button);
+
+  if (currentLesson < lessons.length - 1) {
+    const next = document.createElement("button");
+    next.className = "btn";
+    next.style.marginLeft = "8px";
+    next.textContent = "Next lesson →";
+    next.addEventListener("click", function() {
+      currentLesson++;
+      renderLesson();
+    });
+    content.appendChild(next);
+  }
+}
+
+function showAdvice() {
+  const situation = document.getElementById("situation").value;
+  const item = advice[situation];
+  const result = document.getElementById("adviceResult");
+
+  result.innerHTML = "";
+  const heading = document.createElement("h2");
+  heading.textContent = "Suggested starting settings";
+  result.appendChild(heading);
+
+  [
+    ["Aperture",item.aperture],
+    ["Shutter speed",item.shutter],
+    ["ISO",item.iso],
+    ["Tip",item.tip]
+  ].forEach(function(pair) {
+    const p = document.createElement("p");
+    const strong = document.createElement("strong");
+    strong.textContent = pair[0] + ": ";
+    p.appendChild(strong);
+    p.appendChild(document.createTextNode(pair[1]));
+    result.appendChild(p);
+  });
+}
+
+function renderExercises() {
+  const container = document.getElementById("exerciseList");
+  container.innerHTML = "";
+
+  exercises.forEach(function(exercise, index) {
+    const card = document.createElement("div");
+    card.className = "card exercise" +
+      (state.completedExercises.includes(index) ? " done" : "");
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = state.completedExercises.includes(index);
+    checkbox.setAttribute("aria-label","Complete " + exercise.title);
+
+    checkbox.addEventListener("change", function() {
+      if (checkbox.checked) {
+        if (!state.completedExercises.includes(index)) {
+          state.completedExercises.push(index);
+        }
+      } else {
+        state.completedExercises = state.completedExercises.filter(function(n) {
+          return n !== index;
+        });
+      }
+      saveState();
+      renderExercises();
+    });
+
+    const textBox = document.createElement("div");
+    const heading = document.createElement("h3");
+    heading.textContent = exercise.title;
+    const description = document.createElement("p");
+    description.textContent = exercise.description;
+    textBox.appendChild(heading);
+    textBox.appendChild(description);
+    card.appendChild(checkbox);
+    card.appendChild(textBox);
+    container.appendChild(card);
+  });
+}
+
+function renderQuiz() {
+  const container = document.getElementById("quizQuestions");
+  container.innerHTML = "";
+  document.getElementById("quizResult").textContent = "";
+
+  questions.forEach(function(question, index) {
+    const block = document.createElement("fieldset");
+    block.style.border = "1px solid var(--border)";
+    block.style.borderRadius = "12px";
+    block.style.margin = "0 0 18px";
+    block.style.padding = "16px";
+
+    const legend = document.createElement("legend");
+    legend.textContent = (index + 1) + ". " + question.q;
+    block.appendChild(legend);
+
+    question.options.forEach(function(option, optionIndex) {
+      const label = document.createElement("label");
+      label.className = "option";
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "question" + index;
+      input.value = optionIndex;
+      input.required = true;
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(option));
+      block.appendChild(label);
+    });
+
+    container.appendChild(block);
+  });
+}
+
+document.getElementById("quizForm").addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  let score = 0;
+  const result = document.getElementById("quizResult");
+  result.innerHTML = "";
+
+  questions.forEach(function(question, index) {
+    const selected = document.querySelector(
+      'input[name="question' + index + '"]:checked'
+    );
+
+    const correct = selected && Number(selected.value) === question.answer;
+    if (correct) score++;
+
+    const p = document.createElement("p");
+    p.textContent =
+      (index + 1) + ". " +
+      (correct ? "Correct. " : "Incorrect. ") +
+      "Answer: " + question.options[question.answer] + ". " +
+      question.why;
+    p.style.color = correct ? "var(--green)" : "var(--muted)";
+    result.appendChild(p);
+  });
+
+  state.quizScore = score;
+  saveState();
+
+  const summary = document.createElement("h2");
+  summary.textContent = "Your score: " + score + " / " + questions.length;
+  result.prepend(summary);
+});
+
+function resetQuiz() {
+  document.getElementById("quizForm").reset();
+  document.getElementById("quizResult").textContent = "";
+}
+
+function updateProgress() {
+  const lessonCount = state.completedLessons.length;
+  const exerciseCount = state.completedExercises.length;
+  const total = lessons.length + exercises.length;
+  const completed = lessonCount + exerciseCount;
+  const percent = Math.round(completed / total * 100);
+
+  document.getElementById("lessonStat").textContent =
+    lessonCount + "/" + lessons.length;
+  document.getElementById("exerciseStat").textContent =
+    exerciseCount + "/" + exercises.length;
+  document.getElementById("quizStat").textContent =
+    state.quizScore === null ? "Not attempted" :
+    state.quizScore + "/" + questions.length;
+
+  document.getElementById("dashboardProgress").style.width = percent + "%";
+  document.getElementById("dashboardProgressText").textContent =
+    completed + " of " + total + " lessons and exercises completed (" +
+    percent + "%).";
+
+  document.getElementById("progressBar").style.width = percent + "%";
+  document.getElementById("progressPercent").textContent = percent + "% complete";
+  document.getElementById("progressSummary").textContent =
+    "Lessons completed: " + lessonCount + " of " + lessons.length +
+    ". Exercises completed: " + exerciseCount + " of " + exercises.length +
+    ". Quiz score: " +
+    (state.quizScore === null ? "Not attempted" :
+    state.quizScore + " out of " + questions.length + ".");
+
+  document.getElementById("progressSummary").textContent =
+    "Lessons completed: " + lessonCount + " of " + lessons.length +
+    ". Exercises completed: " + exerciseCount + " of " + exercises.length +
+    ". Quiz score: " +
+    (state.quizScore === null ? "Not attempted" :
+    state.quizScore + " out of " + questions.length);
+}
+
+function newTip() {
+  const tip = tips[Math.floor(Math.random() * tips.length)];
+  document.getElementById("dailyTip").textContent = tip;
+}
+
+function resetProgress() {
+  const confirmed = window.confirm(
+    "Reset all completed lessons, exercises and quiz score?"
+  );
+  if (!confirmed) return;
+
+  state = {completedLessons:[], completedExercises:[], quizScore:null};
+  saveState();
+  renderLesson();
+  renderExercises();
+  renderQuiz();
+}
+
+renderLesson();
+renderExercises();
+renderQuiz();
+showAdvice();
+newTip();
+updateProgress();
+</script>
+</body>
+</html>
